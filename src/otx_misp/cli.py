@@ -27,7 +27,11 @@ from otx_misp import get_pulses_iter as get_pulses, create_events
 from .otx import InvalidAPIKey, BadRequest
 
 log = logging.getLogger('otx_misp')
+logging_format = u"%(asctime)s.%(msecs)03d | %(levelname)-8s | %(name)s.%(module)s.%(funcName)s | %(message)s"
+date_format = "%Y-%m-%d | %H:%M:%S"
+formatter = logging.Formatter(logging_format, date_format)
 console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
 log.addHandler(console_handler)
 
 
@@ -146,7 +150,7 @@ def main(args=None):
         kwargs = {
             'server': config.server,
             'key': config.misp,
-            'blacklist_file': config.blacklist_file,            
+            'blacklist_file': config.blacklist_file,
             'distribution': config.distribution,
             'threat_level': config.threat_level,
             'analysis': config.analysis,
