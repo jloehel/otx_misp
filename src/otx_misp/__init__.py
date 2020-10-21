@@ -45,7 +45,7 @@ _otx_blacklisted_titles = []
 def misp_server_version(misp):
     """
     Retrieve the MISP instance version
-    
+
     :param misp: MISP connection object
     :type misp: :class:`pymisp.PyMISP`
     :return: MISP instance version as string
@@ -62,13 +62,13 @@ def add_attribute(misp, event, attribute):
         misp.add_attribute(event, attribute)
     else:
         log.info("\t - Attribute already exists. Skipping")
-      
+
 def tag_event(misp, event, tag):
     """
     Add a tag to a MISP event
-    
+
     :param misp: MISP connection object
-    :type misp: :class:`pymisp.PyMISP` 
+    :type misp: :class:`pymisp.PyMISP`
     :param event: a MISP event
     :param tag: tag to add
     :return: None
@@ -174,12 +174,12 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
     if not misp and (server and key):
         log.debug("Connection to MISP instance: {}".format(server))
         try:
-            misp = pymisp.ExpandedPyMISP(server, key, ssl=False)
+            misp = pymisp.ExpandedPyMISP(server, key)
         except pymisp.PyMISPError as ex:
             raise ImportException("Cannot connect to MISP instance: {}".format(ex.message))
         except Exception as ex:
             raise ImportException("Cannot connect to MISP instance, unknown exception: {}".format(ex.message))
-          
+
     # Let's load the list of blacklisted pulse titles, if exists
     global _otx_blacklisted_titles
     if blacklist_file and not _otx_blacklisted_titles:
@@ -191,7 +191,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
             for line in lines:
                 if line != "":
                     _otx_blacklisted_titles.append(re.compile(line))
-                
+
     # Let's load in cache all MISP tags available on the instance
     global _otx_tags_cache
     if _otx_tags_cache is None:
@@ -246,7 +246,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
         log.error("Cannot parse Pulse 'created' date.")
         dt = datetime.utcnow()
     event_date = dt.strftime('%Y-%m-%d')
-    
+
     # Let's ignore the pulse if its title is blacklisted
     for regex in _otx_blacklisted_titles:
         if regex.match(pulse['name']):
@@ -342,7 +342,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
                 log.info("\t - Adding tag: {}".format(tag))
                 tag_event(misp, event, tag)
                 result_event['tags'].append(tag)
-                
+
     if 'references' in pulse:
         for reference in pulse['references']:
             if reference:
@@ -366,48 +366,48 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
     for ind in pulse['indicators']:
         ind_type = ind['type']
         ind_val = ind['indicator']
-        a = pymisp.MISPAttribute()        
+        a = pymisp.MISPAttribute()
         a.value = ind_val
         a.to_ids = to_ids
 
         if 'description' in ind and isinstance(ind['description'], six.text_type) and ind['description']:
             a.comment = ind['description']
-            
+
         if ind_type == 'FileHash-SHA256':
             log.info("\t - Adding SHA256 hash: {}".format(ind_val))
-            a.category = 'Artifacts dropped'            
+            a.category = 'Artifacts dropped'
             a.type = 'sha256'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['hashes']['sha256'].append(ind_val)
 
         elif ind_type == 'FileHash-SHA1':
             log.info("\t - Adding SHA1 hash: {}".format(ind_val))
-            a.category = 'Artifacts dropped'                        
+            a.category = 'Artifacts dropped'
             a.type = 'sha1'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['hashes']['sha1'].append(ind_val)
 
         elif ind_type == 'FileHash-MD5':
             log.info("\t - Adding MD5 hash: {}".format(ind_val))
-            a.category = 'Artifacts dropped'                        
+            a.category = 'Artifacts dropped'
             a.type = 'md5'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['hashes']['md5'].append(ind_val)
 
         elif ind_type == 'FileHash-IMPHASH':
             log.info("\t - Adding IMPHASH hash: {}".format(ind_val))
-            a.category = 'Artifacts dropped'                        
+            a.category = 'Artifacts dropped'
             a.type = 'imphash'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['hashes']['imphash'].append(ind_val)
 
         elif ind_type == 'FileHash-PEHASH':
             log.info("\t - Adding PEHASH hash: {}".format(ind_val))
-            a.category = 'Artifacts dropped'                                    
+            a.category = 'Artifacts dropped'
             a.type = 'pehash'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['hashes']['pehash'].append(ind_val)
-            
+
         elif ind_type == 'YARA':
             ind_title = ind.get('title', ind_val)
             ind_desc = ind.get('description', '')
@@ -422,68 +422,68 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
                 log.warning("YARA indicator is empty: %s" % ind_title)
                 continue
             log.info("\t - Adding YARA rule: {}".format(ind_title))
-            a.category = 'Artifacts dropped'                                    
+            a.category = 'Artifacts dropped'
             a.type = 'yara'
             a.value = ind_val
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['yara'].append({'title': ind_title, 'content': ind_val})
 
         elif ind_type == 'Mutex':
             log.info("\t - Adding mutex: {}".format(ind_val))
-            a.category = 'Artifacts dropped'                                    
+            a.category = 'Artifacts dropped'
             a.type = 'mutex'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['mutexes'].append(ind_val)
 
         elif ind_type == 'FilePath':
             log.info("\t - Adding filename: {}".format(ind_val))
-            a.category = 'Artifacts dropped'                                    
+            a.category = 'Artifacts dropped'
             a.type = 'filename'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['filenames'].append(ind_val)
-            
+
         elif ind_type == 'URI' or ind_type == 'URL':
             log.info("\t - Adding URL: {}".format(ind_val))
-            a.category = 'Network activity'            
+            a.category = 'Network activity'
             a.type = 'url'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['urls'].append(ind_val)
 
         elif ind_type == 'domain':
             log.info("\t - Adding domain: {}".format(ind_val))
-            a.category = 'Network activity'                        
+            a.category = 'Network activity'
             a.type = 'domain'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['domains'].append(ind_val)
 
         elif ind_type == 'hostname':
             log.info("\t - Adding hostname: {}".format(ind_val))
-            a.category = 'Network activity'                        
+            a.category = 'Network activity'
             a.type = 'hostname'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['hostnames'].append(ind_val)
 
         elif ind_type == 'IPv4' or ind_type == 'IPv6':
             log.info("\t - Adding ip: {}".format(ind_val))
-            a.category = 'Network activity'                        
+            a.category = 'Network activity'
             a.type = 'ip-dst'
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
             result_event['attributes']['ips'].append(ind_val)
 
         elif ind_type == 'email':
             log.info("\t - Adding email: {}".format(ind_val))
-            a.category = 'Network activity'                        
+            a.category = 'Network activity'
             a.type = 'email-dst'
             result_event['attributes']['emails'].append(ind_val)
-            add_attribute(misp, event, a)                        
+            add_attribute(misp, event, a)
 
         elif ind_type == 'CVE':
             log.info("\t - Adding CVE: {}".format(ind_val))
             a.type = 'External analysis'
             a.type = 'vulnerability'
-            add_attribute(misp, event, a)            
+            add_attribute(misp, event, a)
             result_event['attributes']['cves'].append(ind_val)
-            
+
         else:
             log.warning("Unsupported indicator type: %s" % ind_type)
 
