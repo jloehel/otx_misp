@@ -11,7 +11,8 @@ import six
 
 import pymisp
 import requests
-from .otx import OTXv2
+
+from OTXv2 import OTXv2
 
 try:
   basestring
@@ -218,6 +219,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
     if isinstance(pulse_or_list, (list, tuple)) or inspect.isgenerator(pulse_or_list):
         misp_events = []
         for pulse in pulse_or_list:
+            log.debug("Creating event for %s", pulse)
             try:
                 misp_event = create_events(pulse, author=author, server=server, key=key, misp=misp,
                                            distribution=distribution, threat_level=threat_level, analysis=analysis,

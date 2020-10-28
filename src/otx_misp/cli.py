@@ -24,10 +24,11 @@ from dateutil import parser as date_parser
 
 from otx_misp.configuration import Configuration
 from otx_misp import get_pulses_iter as get_pulses, create_events
-from .otx import InvalidAPIKey, BadRequest
+from OTXv2 import InvalidAPIKey, BadRequest
 
-log = logging.getLogger('otx_misp')
-logging_format = u"%(asctime)s.%(msecs)03d | %(levelname)-8s | %(name)s.%(module)s.%(funcName)s | %(message)s"
+
+log = logging.getLogger()
+logging_format = u"%(asctime)s.%(msecs)03d | %(levelname)-8s | %(name)s.%(module)s.%(funcName)s | %(message)s"  # noqa
 date_format = "%Y-%m-%d | %H:%M:%S"
 formatter = logging.Formatter(logging_format, date_format)
 console_handler = logging.StreamHandler()
@@ -134,17 +135,19 @@ def main(args=None):
         log.error(ex.message)
         sys.exit(5)
 
+    log.debug("Get all pulses")
     try:
         pulses = get_pulses(config.otx, from_timestamp=config.timestamp.isoformat())
     except InvalidAPIKey:
         log.error("Wrong API key: '{}'".format(config.otx))
         sys.exit(11)
-    except ValueError as ex:
+    except ValueError:
         log.error("Cannot use last import timestamp '{}'".format(config.timestamp.isoformat()))
         sys.exit(12)
     except BadRequest:
         log.error("Bad request")
         sys.exit(13)
+
     kwargs = {}
     if not config.simulate:
         kwargs = {
@@ -162,11 +165,6 @@ def main(args=None):
             'dedup_titles': config.dedup_titles,
             'stop_on_error': config.stop_on_error
         }
-        try:
-            import pymisp
-        except ImportError:
-            log.error('PyMISP is not installed. Aborting.')
-            sys.exit(20)
     try:
         create_events(pulses, author=config.author, **kwargs)
     except Exception as ex:
