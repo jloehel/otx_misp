@@ -61,7 +61,7 @@ setup(
     ],
     install_requires=[
         'pymisp>=2.4.113',
-        'OTXv2@@git+https://github.com/jloehel/OTX-Python-SDK.git',
+        'OTXv2@git+https://github.com/jloehel/OTX-Python-SDK.git',
         'python-dateutil'
     ],
     extras_require={
