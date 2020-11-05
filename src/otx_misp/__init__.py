@@ -351,6 +351,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
                 log.info("\t - Adding external analysis link: {}".format(reference))
                 if misp:
                     a = pymisp.MISPAttribute()
+                    a.distribution = 0
                     a.category = "External analysis"
                     a.type = 'link'
                     a.value = reference
@@ -360,6 +361,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
     if misp and 'description' in pulse and isinstance(pulse['description'], six.text_type) and pulse['description']:
         log.info("\t - Adding external analysis comment")
         a = pymisp.MISPAttribute()
+        a.distribution = 0
         a.category = 'External analysis'
         a.type = 'comment'
         a.value = pulse['description']
@@ -369,6 +371,7 @@ def create_events(pulse_or_list, author=False, server=False, key=False, misp=Fal
         ind_type = ind['type']
         ind_val = ind['indicator']
         a = pymisp.MISPAttribute()
+        a.distribution = 0
         a.value = ind_val
         a.to_ids = to_ids
 
